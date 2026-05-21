@@ -1,209 +1,74 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zig Programming Language - Bilingual Arabic/English Community</title>
-<meta name="description" content="Zig programming language: complete bilingual reference, tutorials, and community for Arabic and English speakers. لغة Zig: مرجع كامل، دروس، ومجتمع للمبرمجين العرب.">
-<meta name="keywords" content="Zig, Zig language, Zig programming, Zig Arabic, لغة Zig, برمجة Zig, systems programming, comptime, zero-cost abstractions">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://lighthevenos1923.github.io/zig-reference/">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Zig Programming Language - Bilingual Community">
-<meta property="og:description" content="Complete bilingual reference and community for Zig language in English and Arabic.">
-<meta property="og:locale" content="en_US">
-<meta property="og:locale:alternate" content="ar_SA">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Zig Programming Language">
-<meta name="twitter:description" content="Bilingual Zig reference and community.">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Zig Bilingual Community",
-  "url": "https://lighthevenos1923.github.io/zig-reference/",
-  "description": "Complete bilingual reference for Zig 0.16.0 programming language in English and Arabic.",
-  "inLanguage": ["en", "ar"]
-}
-</script>
+<title>ZigHub - Zig Programming Community</title>
+<meta name="description" content="ZigHub - The complete Zig programming community. Bilingual reference, social feed, projects, tutorials, and more.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav>
-  <div class="nav-brand">
-    <div class="logo"></div>
-    <span>Zig <span style="color:var(--accent)">0.16</span></span>
+<nav class="topnav">
+  <div class="topnav-left">
+    <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="topnav-logo">
+      <div class="logo-icon"></div>
+      <span>Zig<span style="color:var(--accent)">Hub</span></span>
+    </div>
   </div>
-  <div class="nav-links" id="navLinks">
-    <a href="#about">About</a>
-    <a href="#features">Features</a>
-    <a href="reference.html" target="_blank">Reference</a>
-    <a href="#community">Community</a>
-    <a href="reference.html" class="nav-cta">Open Reference</a>
+  <div class="topnav-search">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Search ZigHub...">
   </div>
-  <div class="nav-toggle" id="navToggle" onclick="toggleNav()">
-    <span></span><span></span><span></span>
+  <div class="topnav-right">
+    <a class="nav-link active" data-view="feed" onclick="navigate('feed')"><span>🏠</span> <span>Home</span></a>
+    <a class="nav-link" data-view="explore" onclick="navigate('explore')"><span>🔥</span> <span>Explore</span></a>
+    <a class="nav-link" data-view="learn" onclick="navigate('learn')"><span>📖</span> <span>Learn</span></a>
+    <a class="nav-link" data-view="community" onclick="navigate('community')"><span>🌍</span> <span>Community</span></a>
+    <div class="topnav-avatar" onclick="navigate('profile')">Z</div>
   </div>
 </nav>
 
-<header class="hero">
-  <div class="hero-bg-grid"></div>
-  <div class="hero-content">
-    <div class="hero-badge">v0.16.0 · Bilingual Reference</div>
-    <h1>Zig Programming<br>Language</h1>
-    <p class="hero-subtitle">A general-purpose programming language and toolchain for maintaining robust, optimal, and reusable software.</p>
-    <p class="hero-ar">لغة برمجة عامة الأداء · آمنة · قوية · مرجع عربي/إنجليزي شامل</p>
-    <div class="hero-buttons">
-      <a href="reference.html" class="btn btn-primary">Open Reference →</a>
-      <a href="#features" class="btn btn-secondary">Explore Features</a>
-      <a href="#community" class="btn btn-outline">Join Community</a>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-link active" data-view="feed" onclick="navigate('feed')">
+      <span class="icon">🏠</span> Feed
     </div>
-  </div>
-</header>
-
-<section id="about">
-  <div class="section-inner">
-    <div class="ref-preview">
-      <div class="ref-preview-text">
-        <span class="section-label">What is Zig?</span>
-        <h2>Robust, Optimal, and Reusable</h2>
-        <p>Zig is a general-purpose programming language and toolchain for maintaining robust, optimal, and reusable software. It empowers developers to write correct, efficient code without hidden control flow, memory allocations, or operator overloading.</p>
-        <p>This bilingual reference provides <strong>354 sections</strong> covering the entire language, with Arabic explanations, vocabulary, notes, and exercises alongside the original English documentation.</p>
-        <a href="reference.html" class="btn btn-primary">Start Learning →</a>
-      </div>
-      <div class="ref-preview-image">
-        <pre><span class="kw">const</span> std = <span class="bl">@import</span>(<span class="st">"std"</span>);
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="bl">main</span>() <span class="ty">void</span> {
-    <span class="kw">const</span> msg = <span class="st">"Hello, Zig!"</span>;
-    std.debug.print(<span class="st">"{s}\n"</span>, .{msg});
-
-    <span class="kw">const</span> result = add(5, 3);
-    std.debug.print(<span class="st">"5 + 3 = {d}\n"</span>, .{result});
-}
-
-<span class="kw">fn</span> add(a: <span class="ty">i32</span>, b: <span class="ty">i32</span>) <span class="ty">i32</span> {
-    <span class="kw">return</span> a + b;
-}</pre>
-      </div>
+    <div class="sidebar-link" data-view="explore" onclick="navigate('explore')">
+      <span class="icon">🔥</span> Explore
     </div>
-  </div>
-</section>
-
-<section class="stats-section" id="stats">
-  <div class="section-inner">
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-number" data-count="52">52</div>
-        <div class="stat-label">Major Sections</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number" data-count="354">354</div>
-        <div class="stat-label">Total Sections</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number" data-count="317">317</div>
-        <div class="stat-label">Code Examples</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number" data-count="966">966</div>
-        <div class="stat-label">English Blocks</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number" data-count="0.16">0.16</div>
-        <div class="stat-label">Version</div>
-      </div>
+    <div class="sidebar-link" data-view="learn" onclick="navigate('learn')">
+      <span class="icon">📖</span> Learn
     </div>
-  </div>
-</section>
-
-<section id="features">
-  <div class="section-inner">
-    <span class="section-label">Why Zig?</span>
-    <h2 class="section-title">Key Features</h2>
-    <p class="section-desc">Zig combines low-level control with high-level productivity. No hidden allocations, no hidden control flow, no preprocessor — just clean, fast, reliable code.</p>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>Zero-Cost Abstractions</h3>
-        <p>Write high-level code that compiles down to optimal machine code. No hidden allocations, no runtime overhead you didn't explicitly choose.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🛡️</div>
-        <h3>Safety & Correctness</h3>
-        <p>Optional bounds checking, no undefined behavior by default, and a type system that catches errors at compile time, not runtime.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔄</div>
-        <h3>Comptime Metaprogramming</h3>
-        <p>Execute Zig code at compile time. Generate types, functions, and optimizations without macros or code generators.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📦</div>
-        <h3>No Hidden Allocations</h3>
-        <p>Every allocation is explicit. No hidden malloc, no garbage collector, no runtime. You control memory completely.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔗</div>
-        <h3>Seamless C Interop</h3>
-        <p>Import C headers directly, call C functions without FFI overhead. Zig can replace C in any project, gradually.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🌍</div>
-        <h3>Bilingual Reference</h3>
-        <p>Complete documentation in English with Arabic explanations, vocabulary tables, notes, and exercises — learn in your native language.</p>
-      </div>
+    <div class="sidebar-link" data-view="community" onclick="navigate('community')">
+      <span class="icon">🌍</span> Community
     </div>
-  </div>
-</section>
-
-<section id="community" class="community-section">
-  <div class="section-inner">
-    <span class="section-label">Join Us</span>
-    <h2 class="section-title">Community</h2>
-    <p class="section-desc">Connect with Zig programmers from around the world. Share knowledge, ask questions, and contribute to the language.</p>
-    <div class="community-grid">
-      <div class="community-card">
-        <div class="community-icon" style="background:rgba(0,212,170,0.1);color:var(--accent2);">💬</div>
-        <h3>Telegram Group</h3>
-        <p>Arabic & English discussion group for Zig programmers.</p>
-        <a href="https://t.me/ZigArab" target="_blank" class="btn btn-primary">Join Telegram</a>
-      </div>
-      <div class="community-card">
-        <div class="community-icon" style="background:rgba(88,101,242,0.1);color:#5865F2;">🎮</div>
-        <h3>Discord</h3>
-        <p>Official Zig Discord server with thousands of developers.</p>
-        <a href="https://discord.gg/zig" target="_blank" class="btn btn-secondary">Join Discord</a>
-      </div>
-      <div class="community-card">
-        <div class="community-icon" style="background:rgba(255,255,255,0.05);color:#fff;">📖</div>
-        <h3>GitHub Repository</h3>
-        <p>Source code, issues, and contributions for this reference.</p>
-        <a href="https://github.com/LightHevenOS1923/zig-reference" target="_blank" class="btn btn-secondary">View Source</a>
-      </div>
-      <div class="community-card">
-        <div class="community-icon" style="background:rgba(247,164,29,0.1);color:var(--accent);">🔗</div>
-        <h3>Official Site</h3>
-        <p>The official Zig language website and documentation.</p>
-        <a href="https://ziglang.org" target="_blank" class="btn btn-secondary">ziglang.org</a>
-      </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Account</div>
+    <div class="sidebar-link" data-view="profile" onclick="navigate('profile')">
+      <span class="icon">👤</span> Profile
     </div>
-  </div>
-</section>
+    <div class="sidebar-link" data-view="login" onclick="navigate('login')">
+      <span class="icon">🔑</span> Sign In
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Resources</div>
+    <div class="sidebar-link" onclick="window.open('reference.html','_blank')">
+      <span class="icon">📘</span> Full Reference
+    </div>
+    <div class="sidebar-link" onclick="window.open('https://ziglang.org','_blank')">
+      <span class="icon">🔗</span> ziglang.org
+    </div>
+  </aside>
 
-<footer>
-  <div class="footer-brand">Zig <span style="color:var(--accent)">0.16.0</span> Bilingual Reference</div>
-  <div class="footer-links">
-    <a href="reference.html">Reference</a>
-    <a href="https://ziglang.org">Official Site</a>
-    <a href="https://github.com/LightHevenOS1923/zig-reference">GitHub</a>
-    <a href="https://ziglang.org/documentation/0.16.0/">Official Docs</a>
-  </div>
-  <p>English content from <a href="https://ziglang.org/documentation/0.16.0/">Zig official documentation</a> · Arabic content by community contributors</p>
-  <p style="margin-top:6px;">Built with ❤️ for the Zig community</p>
-</footer>
+  <main class="main-content" id="mainContent">
+    <div class="loading"><div class="spinner"></div>Loading...</div>
+  </main>
+</div>
 
-<script src="script.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
