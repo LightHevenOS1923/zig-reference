@@ -1,12 +1,3 @@
-// ── State ──
-const state = {
-  user: null,
-  view: 'feed',
-  posts: [],
-  users: USERS,
-  comments: {},
-};
-
 // ── Mock Data ──
 const USERS = [
   { id: 1, name: 'Zig Learner', handle: 'ziglearner', bio: 'Learning Zig one comptime at a time', posts: 12 },
@@ -64,6 +55,14 @@ const TUTORIALS = [
   { title: 'Zig vs C: A Comparison', desc: 'For C programmers learning Zig', level: 'Intermediate', time: '20 min' },
   { title: 'Building a CLI Tool', desc: 'Create a command-line application in Zig', level: 'Intermediate', time: '40 min' },
 ];
+
+// ── State ──
+const state = {
+  user: null,
+  view: 'feed',
+  posts: FEED,
+  comments: {},
+};
 
 // ── Router ──
 function navigate(view) {
