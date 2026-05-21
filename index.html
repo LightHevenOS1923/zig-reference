@@ -3,247 +3,70 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZigHub - Zig Programming Community & Reference</title>
-<meta name="description" content="Complete Zig programming community: bilingual reference Arabic/English, code examples, tutorials, projects showcase, and developer community. مرجع Zig كامل بالعربية والإنجليزية.">
-<meta name="keywords" content="Zig, Zig language, Zig programming, Zig Arabic, Zig reference, لغة Zig, برمجة Zig">
+<title>ZigHub - Complete Zig Programming Platform</title>
+<meta name="description" content="The complete Zig programming platform: bilingual reference, social network, code sharing, tutorials, and community for Zig developers.">
+<meta name="keywords" content="Zig, Zig language, Zig programming, Zig community, Zig Arabic, مرجع Zig">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav class="topnav">
-  <div class="brand">
-    <button class="menu-btn" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-    <div class="mark"></div>
-    <span>Zig<span style="color:var(--accent)">Hub</span></span>
+<nav class="nav">
+  <div class="nav-l">
+    <button class="mm" onclick="document.querySelector('.side').classList.toggle('open')"><span></span><span></span><span></span></button>
+    <div class="logo"></div>
+    <div class="brand" onclick="navigate('feed')">Zig<span style="color:var(--accent)">Hub</span></div>
   </div>
-  <div class="links">
-    <a href="#feed">Feed</a>
-    <a href="#explore">Explore</a>
-    <a href="#learn">Learn</a>
-    <a href="#community">Community</a>
-    <a href="#reference" class="cta">Reference</a>
+  <div class="nav-c">
+    <a data-v="feed" onclick="navigate('feed')"><span>🏠</span> <span class="n">Feed</span></a>
+    <a data-v="explore" onclick="navigate('explore')"><span>🔥</span> <span class="n">Explore</span></a>
+    <a data-v="learn" onclick="navigate('learn')"><span>📖</span> <span class="n">Learn</span></a>
+    <a data-v="community" onclick="navigate('community')"><span>🌍</span> <span class="n">Community</span></a>
+  </div>
+  <div class="nav-r">
+    <div class="avatar" onclick="navigate('profile')" id="navAvatar">Z</div>
   </div>
 </nav>
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()">
-  <div class="sidebar-drawer" onclick="event.stopPropagation()">
-    <div class="drawer-link" onclick="toggleSidebar();document.getElementById('feed').scrollIntoView({behavior:'smooth'})"><span>🏠</span> Feed</div>
-    <div class="drawer-link" onclick="toggleSidebar();document.getElementById('explore').scrollIntoView({behavior:'smooth'})"><span>🔥</span> Explore</div>
-    <div class="drawer-link" onclick="toggleSidebar();document.getElementById('learn').scrollIntoView({behavior:'smooth'})"><span>📖</span> Learn</div>
-    <div class="drawer-link" onclick="toggleSidebar();document.getElementById('community').scrollIntoView({behavior:'smooth'})"><span>🌍</span> Community</div>
-    <div class="drawer-div"></div>
-    <div class="drawer-link" onclick="toggleSidebar();document.getElementById('reference').scrollIntoView({behavior:'smooth'})"><span>📘</span> Full Reference</div>
-    <div class="drawer-link" onclick="window.open('https://ziglang.org','_blank')"><span>🔗</span> ziglang.org</div>
+<div class="layout">
+  <aside class="side">
+    <div class="side-l active" data-v="feed" onclick="navigate('feed')"><span>🏠</span> Feed</div>
+    <div class="side-l" data-v="explore" onclick="navigate('explore')"><span>🔥</span> Explore</div>
+    <div class="side-l" data-v="learn" onclick="navigate('learn')"><span>📖</span> Learn</div>
+    <div class="side-l" data-v="community" onclick="navigate('community')"><span>🌍</span> Community</div>
+    <div class="side-d"></div>
+    <div class="side-h">Account</div>
+    <div class="side-l" data-v="profile" onclick="navigate('profile')"><span>👤</span> Profile</div>
+    <div class="side-l" data-v="login" onclick="navigate('login')"><span>🔑</span> Sign In</div>
+    <div class="side-d"></div>
+    <div class="side-h">Resources</div>
+    <div class="side-l" onclick="window.open('reference.html','_blank')"><span>📘</span> Reference</div>
+    <div class="side-l" onclick="window.open('https://ziglang.org','_blank')"><span>🔗</span> ziglang.org</div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="spin"><div class="logo" style="width:20px;height:20px;"></div> Loading...</div>
+  </main>
+</div>
+
+<div class="mod" id="postModal">
+  <div class="mod-c">
+    <h3>New Post</h3>
+    <textarea class="input" id="postText" placeholder="Share something about Zig..."></textarea>
+    <textarea class="input" id="postCode" placeholder="Optional: Zig code example" style="font-family:var(--mono);min-height:60px;"></textarea>
+    <div class="mod-f">
+      <button class="btn btn-o btn-s" onclick="document.getElementById('postModal').classList.remove('on')">Cancel</button>
+      <button class="btn btn-p btn-s" onclick="submitPost()">Post</button>
+    </div>
   </div>
 </div>
 
-<section class="hero">
-  <div>
-    <h1>Zig Programming<br>Language</h1>
-    <p>A general-purpose programming language and toolchain for maintaining robust, optimal, and reusable software.</p>
-    <div class="ar-text">لغة برمجة عامة الأداء · آمنة · قوية · مرجع عربي/إنجليزي شامل</div>
-    <div class="btns">
-      <a href="#reference" class="btn btn-primary">📖 Open Reference</a>
-      <a href="#explore" class="btn btn-outline">🔥 Explore</a>
-      <a href="#community" class="btn btn-outline">🌍 Community</a>
-    </div>
-  </div>
-</section>
-
-<main class="container">
-
-<div class="stats">
-  <div><div class="stat-num">52</div><div class="stat-lbl">Major Sections</div></div>
-  <div><div class="stat-num">354</div><div class="stat-lbl">Total Sections</div></div>
-  <div><div class="stat-num">317</div><div class="stat-lbl">Code Examples</div></div>
-  <div><div class="stat-num">0.16</div><div class="stat-lbl">Version</div></div>
-</div>
-
-<section id="feed">
-  <h2 class="section-title">🏠 Latest Feed</h2>
-  <p class="section-sub">Recent posts from the Zig community</p>
-
-  <div class="post-card">
-    <div class="post-head">
-      <div class="post-avatar" style="background:#f7a41d;">Z</div>
-      <div><div class="post-user">Zig Learner</div><div class="post-time">2 hours ago</div></div>
-    </div>
-    <div class="post-text">Just discovered Zig's comptime! This is incredible. You can run code at compile time and generate types dynamically. No macros needed.</div>
-    <div class="post-code">const std = @import("std");<br><br>fn ComptimeFn(comptime T: type) type {<br>    return struct {<br>        data: T,<br>        fn init(v: T) @This() { return .{ .data = v }; }<br>    };<br>}<br><br>pub fn main() void {<br>    const S = ComptimeFn(i32);<br>    const s = S.init(42);<br>    std.debug.print("{d}", .{s.data});<br>}</div>
-    <div class="post-actions">
-      <button class="like-btn" onclick="toggleLike(this)">🤍 24</button>
-      <button onclick="toggleComments(this)">💬 5</button>
-      <button>🔗 Share</button>
-    </div>
-    <div class="post-comments">
-      <div class="comment"><div class="comment-av">S</div><div class="comment-body"><span class="comment-user">Systems Dev</span> <span class="comment-text">Amazing! Comptime is my favorite feature</span></div></div>
-      <div class="comment"><div class="comment-av">C</div><div class="comment-body"><span class="comment-user">Code Wizard</span> <span class="comment-text">The type-level programming in Zig is unmatched</span></div></div>
-    </div>
-  </div>
-
-  <div class="post-card">
-    <div class="post-head">
-      <div class="post-avatar" style="background:#00d4aa;">S</div>
-      <div><div class="post-user">Systems Dev</div><div class="post-time">5 hours ago</div></div>
-    </div>
-    <div class="post-text">Zig's allocator pattern is genius. Every allocation is explicit. No hidden mallocs. You pass the allocator to functions that need it.</div>
-    <div class="post-code">const std = @import("std");<br><br>pub fn main() !void {<br>    var gpa = std.heap.GeneralPurposeAllocator(.{}){};<br>    defer _ = gpa.deinit();<br>    const allocator = gpa.allocator();<br>    const list = try std.ArrayList(u8).initCapacity(allocator, 4);<br>    defer list.deinit();<br>    try list.appendSlice("Zig");<br>    std.debug.print("{s}", .{list.items});<br>}</div>
-    <div class="post-actions">
-      <button class="like-btn" onclick="toggleLike(this)">❤️ 42</button>
-      <button onclick="toggleComments(this)">💬 8</button>
-      <button>🔗 Share</button>
-    </div>
-    <div class="post-comments">
-      <div class="comment"><div class="comment-av">Z</div><div class="comment-body"><span class="comment-user">Zig Learner</span> <span class="comment-text">This is so clean! Much better than C</span></div></div>
-      <div class="comment"><div class="comment-av">R</div><div class="comment-body"><span class="comment-user">RustConvert</span> <span class="comment-text">The explicit allocator pattern is liberating</span></div></div>
-    </div>
-  </div>
-
-  <div class="post-card">
-    <div class="post-head">
-      <div class="post-avatar" style="background:#a855f7;">أ</div>
-      <div><div class="post-user">أحمد الفرا</div><div class="post-time">1 day ago</div></div>
-    </div>
-    <div class="post-text">بدأت أتعلم Zig بعد سنوات من C والفرق كبير. لا header files، لا preprocessor، compiler أسرع، ورسائل خطأ واضحة. أنصح كل مبرمج C بتجربتها.</div>
-    <div class="post-code">const std = @import("std");<br><br>pub fn main() void {<br>    const msg = "مرحبا بالعالم";<br>    std.debug.print("{s}\n", .{msg});<br>    const x: u8 = 255;<br>    const y = x +% 1;<br>    std.debug.print("{d}", .{y});<br>}</div>
-    <div class="post-actions">
-      <button class="like-btn" onclick="toggleLike(this)">🤍 36</button>
-      <button onclick="toggleComments(this)">💬 12</button>
-      <button>🔗 Share</button>
-    </div>
-    <div class="post-comments">
-      <div class="comment"><div class="comment-av">R</div><div class="comment-body"><span class="comment-user">RustConvert</span> <span class="comment-text">مرحبا بك في عالم Zig!</span></div></div>
-    </div>
-  </div>
-
-  <div class="post-card">
-    <div class="post-head">
-      <div class="post-avatar" style="background:#4a8eff;">C</div>
-      <div><div class="post-user">Code Wizard</div><div class="post-time">2 days ago</div></div>
-    </div>
-    <div class="post-text">Built a simple HTTP server in Zig using only the standard library. No external dependencies!</div>
-    <div class="post-code">const std = @import("std");<br>const net = std.net;<br><br>pub fn main() !void {<br>    var server = try net.StreamServer.init(.{ .reuse_address = true });<br>    defer server.deinit();<br>    try server.listen(net.Address.parseIp("0.0.0.0", 8080) catch unreachable);<br>    while (true) {<br>        const conn = try server.accept();<br>        defer conn.stream.close();<br>        _ = try conn.stream.write("HTTP/1.1 200 OK\r\n\r\nHello Zig!");<br>    }<br>}</div>
-    <div class="post-actions">
-      <button class="like-btn" onclick="toggleLike(this)">🤍 53</button>
-      <button onclick="toggleComments(this)">💬 9</button>
-      <button>🔗 Share</button>
-    </div>
-    <div class="post-comments">
-      <div class="comment"><div class="comment-av">Z</div><div class="comment-body"><span class="comment-user">Zig Learner</span> <span class="comment-text">Incredible that this is just std lib!</span></div></div>
-    </div>
-  </div>
-
-  <div class="post-card">
-    <div class="post-head">
-      <div class="post-avatar" style="background:#ff4757;">R</div>
-      <div><div class="post-user">RustConvert</div><div class="post-time">3 days ago</div></div>
-    </div>
-    <div class="post-text">Coming from Rust, Zig feels liberating. No borrow checker fights, no lifetime annotations. Just write code and it works. And it's FAST.</div>
-    <div class="post-actions">
-      <button class="like-btn" onclick="toggleLike(this)">🤍 18</button>
-      <button onclick="toggleComments(this)">💬 7</button>
-      <button>🔗 Share</button>
-    </div>
-    <div class="post-comments">
-      <div class="comment"><div class="comment-av">S</div><div class="comment-body"><span class="comment-user">Systems Dev</span> <span class="comment-text">Welcome! The simplicity is what got me too</span></div></div>
-    </div>
-  </div>
-</section>
-
-<section id="explore">
-  <h2 class="section-title">🔥 Explore Projects</h2>
-  <p class="section-sub">Open source Zig projects from the community</p>
-  <div class="grid-3">
-    <div class="proj-card"><h3>Zig HTTP Parser</h3><p>Fast HTTP/1.1 parser written in pure Zig</p><span class="tag">network</span><span class="tag">parser</span></div>
-    <div class="proj-card"><h3>TigerBE Engine</h3><p>Game engine in Zig with Vulkan backend</p><span class="tag">graphics</span><span class="tag">game-dev</span></div>
-    <div class="proj-card"><h3>Zig SQLite</h3><p>Zero-cost bindings to SQLite database</p><span class="tag">database</span><span class="tag">bindings</span></div>
-    <div class="proj-card"><h3>Comptime JSON</h3><p>JSON parsing at compile time</p><span class="tag">comptime</span><span class="tag">json</span></div>
-    <div class="proj-card"><h3>Zig TLS 1.3</h3><p>TLS 1.3 implementation in pure Zig</p><span class="tag">security</span><span class="tag">crypto</span></div>
-    <div class="proj-card"><h3>Zig Web</h3><p>Minimal web framework inspired by Express</p><span class="tag">web</span><span class="tag">framework</span></div>
-  </div>
-</section>
-
-<section id="learn">
-  <h2 class="section-title">📚 Tutorials</h2>
-  <p class="section-sub">Learn Zig step by step</p>
-  <div class="learn-grid grid-3">
-    <div class="feat-card"><span class="feat-icon">🚀</span><h3>Getting Started</h3><p>Install Zig and write your first program</p><span class="tag">Beginner</span><span class="tag">10 min</span></div>
-    <div class="feat-card"><span class="feat-icon">⚡</span><h3>Understanding Comptime</h3><p>Master compile-time execution</p><span class="tag">Intermediate</span><span class="tag">30 min</span></div>
-    <div class="feat-card"><span class="feat-icon">💾</span><h3>Memory Management</h3><p>Allocators, arenas, custom strategies</p><span class="tag">Advanced</span><span class="tag">45 min</span></div>
-    <div class="feat-card"><span class="feat-icon">🔄</span><h3>Zig vs C</h3><p>For C programmers learning Zig</p><span class="tag">Intermediate</span><span class="tag">20 min</span></div>
-    <div class="feat-card"><span class="feat-icon">📟</span><h3>CLI Tools</h3><p>Build command-line applications</p><span class="tag">Intermediate</span><span class="tag">40 min</span></div>
-  </div>
-</section>
-
-<section id="reference">
-  <h2 class="section-title">📖 Bilingual Reference</h2>
-  <p class="section-sub">Complete Zig 0.16.0 reference — English + Arabic · 354 sections · 317 code examples</p>
-  <div class="post-card">
-    <div class="post-text">The complete bilingual reference covers every aspect of Zig 0.16.0. English original text alongside Arabic explanations, vocabulary tables, notes, and exercises.</div>
-    <div class="ref-links" style="margin-top:12px;">
-      <a href="reference.html" target="_blank" class="btn btn-primary">📘 Open Full Reference</a>
-      <a href="reference.html#Introduction" target="_blank" class="btn btn-outline btn-sm">Getting Started</a>
-      <a href="reference.html#Basic_Syntax" target="_blank" class="btn btn-outline btn-sm">Basic Syntax</a>
-      <a href="reference.html#Memory" target="_blank" class="btn btn-outline btn-sm">Memory</a>
-      <a href="reference.html#Comptime" target="_blank" class="btn btn-outline btn-sm">Comptime</a>
-    </div>
-  </div>
-  <div class="post-card">
-    <div class="post-head"><div class="post-avatar" style="background:var(--accent);font-size:.7em;">📄</div><div><div class="post-user">Quick Start</div></div></div>
-    <div class="post-code"># Install on Linux/macOS<br>curl -fsSL https://ziglang.org/download/0.16.0/zig-linux-x86_64-0.16.0.tar.xz | tar -xJ<br>./zig-linux-x86_64-0.16.0/zig version<br><br># First program<br>echo 'const std = @import("std");<br>pub fn main() void {<br>    std.debug.print("Hello Zig!\n", .{});<br>}' > hello.zig<br>./zig run hello.zig</div>
-  </div>
-</section>
-
-<section id="community">
-  <h2 class="section-title">🌍 Join the Community</h2>
-  <p class="section-sub">Connect with Zig developers worldwide</p>
-  <div class="comm-grid">
-    <div class="comm-card"><div class="comm-icon">💬</div><h3>Telegram</h3><p>Arabic & English group</p><a href="https://t.me/ZigArab" target="_blank" class="btn btn-primary btn-sm">Join</a></div>
-    <div class="comm-card"><div class="comm-icon">🎮</div><h3>Discord</h3><p>Official Zig server</p><a href="https://discord.gg/zig" target="_blank" class="btn btn-outline btn-sm">Join</a></div>
-    <div class="comm-card"><div class="comm-icon">📖</div><h3>GitHub</h3><p>Source & contributions</p><a href="https://github.com/LightHevenOS1923/zig-reference" target="_blank" class="btn btn-outline btn-sm">View</a></div>
-    <div class="comm-card"><div class="comm-icon">🔗</div><h3>Zig Forum</h3><p>Discussions & Q&A</p><a href="https://ziggit.dev" target="_blank" class="btn btn-outline btn-sm">Visit</a></div>
-  </div>
-  <div class="post-card" style="margin-top:12px;">
-    <h3 style="margin-bottom:6px;">📢 Community Rules</h3>
-    <ul style="color:var(--text2);font-size:.85em;padding-left:20px;">
-      <li>Be respectful and inclusive</li>
-      <li>Stay on topic: Zig programming</li>
-      <li>Help others learn and grow</li>
-      <li>Share your projects and code</li>
-    </ul>
-  </div>
-</section>
-
-</main>
-
-<footer>
-  <div class="links">
-    <a href="reference.html">Reference</a>
-    <a href="https://ziglang.org">Official Site</a>
-    <a href="https://github.com/LightHevenOS1923/zig-reference">GitHub</a>
-  </div>
-  <p>English content from Zig official documentation · Arabic content by community contributors</p>
-  <p style="margin-top:4px;">Built with ❤️ for the Zig community</p>
-</footer>
+<div class="notif" id="notif"></div>
 
 <script>
-function toggleLike(btn) {
-  if (btn.textContent.trim().startsWith('❤')) {
-    btn.textContent = '🤍 ' + (parseInt(btn.textContent.match(/\d+/)[0]) - 1);
-    btn.classList.remove('liked');
-  } else {
-    btn.textContent = '❤️ ' + (parseInt(btn.textContent.match(/\d+/)[0]) + 1);
-    btn.classList.add('liked');
-  }
-}
-function toggleComments(btn) {
-  var comments = btn.closest('.post-card').querySelector('.post-comments');
-  if (comments) comments.classList.toggle('show');
-}
-function toggleSidebar() {
-  document.getElementById('sidebarOverlay').classList.toggle('open');
-}
+// Supabase URL and Key for production - paste from supabase.com
+const SUPABASE_URL = '';
+const SUPABASE_KEY = '';
 </script>
-
+<script src="app.js"></script>
 </body>
 </html>

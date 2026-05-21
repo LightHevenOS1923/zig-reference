@@ -1,384 +1,381 @@
-// ── Mock Data ──
-const USERS = [
-  { id: 1, name: 'Zig Learner', handle: 'ziglearner', bio: 'Learning Zig one comptime at a time', posts: 12 },
-  { id: 2, name: 'Systems Dev', handle: 'sysdev', bio: 'Systems programmer, Zig enthusiast', posts: 28 },
-  { id: 3, name: 'أحمد الفرا', handle: 'ahmedfr', bio: 'مبرمج أنظمة عربي', posts: 7 },
-  { id: 4, name: 'Code Wizard', handle: 'codewiz', bio: 'Comptime is magic', posts: 19 },
-  { id: 5, name: 'RustConvert', handle: 'rustconvert', bio: 'Came from Rust, stayed for Zig', posts: 33 },
-];
-
-const FEED = [
-  {
-    id: 1, userId: 1, time: '2h ago',
-    text: 'Just discovered Zig\'s comptime! This is incredible. You can run code at compile time and generate types dynamically. No macros needed.',
-    code: 'const std = @import("std");\n\nfn ComptimeFn(comptime T: type) type {\n    return struct {\n        data: T,\n        fn init(v: T) @This() { return .{ .data = v }; }\n    };\n}\n\npub fn main() void {\n    const S = ComptimeFn(i32);\n    const s = S.init(42);\n    std.debug.print("{d}", .{s.data});\n}',
-    likes: 24, comments: 5, liked: false,
-  },
-  {
-    id: 2, userId: 2, time: '5h ago',
-    text: 'Zig\'s allocator pattern is genius. Every allocation is explicit. No hidden mallocs. You pass the allocator to functions that need it. This is how systems programming should be done.',
-    code: 'const std = @import("std");\n\npub fn main() !void {\n    var gpa = std.heap.GeneralPurposeAllocator(.{}){};\n    defer _ = gpa.deinit();\n    const allocator = gpa.allocator();\n\n    const list = try std.ArrayList(u8).initCapacity(allocator, 4);\n    defer list.deinit();\n    \n    try list.appendSlice("Zig");\n    std.debug.print("{s}", .{list.items});\n}',
-    likes: 42, comments: 8, liked: true,
-  },
-  {
-    id: 3, userId: 3, time: '1d ago',
-    text: 'بدأت أتعلم Zig بعد سنوات من C والفرق كبير. لا header files، لا preprocessor، compiler أسرع، ورسائل خطأ واضحة. أنصح كل مبرمج C بتجربتها.',
-    code: 'const std = @import("std");\n\npub fn main() void {\n    const msg = "مرحبا بالعالم";\n    std.debug.print("{s}\\n", .{msg});\n    \n    // No UB by default!\n    const x: u8 = 255;\n    const y = x +% 1;  // wrapping add\n    std.debug.print("{d}", .{y});\n}',
-    likes: 36, comments: 12, liked: false,
-  },
-  {
-    id: 4, userId: 4, time: '2d ago',
-    text: 'Built a simple HTTP server in Zig using the standard library. The @import system is so clean. No external dependencies needed for basic networking.',
-    code: 'const std = @import("std");\nconst net = std.net;\n\npub fn main() !void {\n    var server = try net.StreamServer.init(.{ .reuse_address = true });\n    defer server.deinit();\n    \n    try server.listen(net.Address.parseIp("0.0.0.0", 8080) catch unreachable);\n    \n    while (true) {\n        const conn = try server.accept();\n        defer conn.stream.close();\n        _ = try conn.stream.write("HTTP/1.1 200 OK\\r\\n\\r\\nHello Zig!");\n    }\n}',
-    likes: 53, comments: 9, liked: false,
-  },
-  {
-    id: 5, userId: 5, time: '3d ago',
-    text: 'Coming from Rust, Zig feels liberating. No borrow checker fights, no lifetime annotations. Just write code and it works. And it\'s FAST.',
-    likes: 18, comments: 7, liked: false,
-  },
-];
-
-const PROJECTS = [
-  { title: 'Zig HTTP Parser', desc: 'Fast HTTP/1.1 parser written in Zig', author: 'sysdev', tags: ['network', 'parser'] },
-  { title: 'TigerBE Game Engine', desc: 'Game engine in Zig with Vulkan backend', author: 'ahmedfr', tags: ['graphics', 'game-dev'] },
-  { title: 'Zig SQLite Bindings', desc: 'Zero-cost bindings to SQLite', author: 'codewiz', tags: ['database', 'bindings'] },
-  { title: 'Comptime JSON', desc: 'JSON parsing at compile time', author: 'ziglearner', tags: ['comptime', 'json'] },
-  { title: 'Zig TLS 1.3', desc: 'TLS 1.3 implementation in pure Zig', author: 'rustconvert', tags: ['security', 'crypto'] },
-  { title: 'Zig Web Framework', desc: 'Minimal web framework inspired by Express', author: 'sysdev', tags: ['web', 'framework'] },
-];
-
-const TUTORIALS = [
-  { title: 'Getting Started with Zig', desc: 'Install Zig and write your first program', level: 'Beginner', time: '10 min' },
-  { title: 'Understanding Comptime', desc: 'Master Zig\'s compile-time execution', level: 'Intermediate', time: '30 min' },
-  { title: 'Memory Management in Zig', desc: 'Allocators, arenas, and custom memory strategies', level: 'Advanced', time: '45 min' },
-  { title: 'Zig vs C: A Comparison', desc: 'For C programmers learning Zig', level: 'Intermediate', time: '20 min' },
-  { title: 'Building a CLI Tool', desc: 'Create a command-line application in Zig', level: 'Intermediate', time: '40 min' },
-];
+// ── Supabase Config (fill your keys from supabase.com) ──
+const SUPABASE_URL = localStorage.getItem('supabase_url') || '';
+const SUPABASE_KEY = localStorage.getItem('supabase_key') || '';
+let supabase = null;
 
 // ── State ──
-const state = {
-  user: null,
-  view: 'feed',
-  posts: FEED,
-  comments: {},
-};
+const state = { user: null, view: 'feed', posts: [], users: [] };
 
-// ── Router ──
-function navigate(view) {
-  state.view = view;
-  window.location.hash = view;
+// ── Mock Data (fallback when Supabase not configured) ──
+const MOCK_USERS = [
+  {id:1,name:'Zig Learner',handle:'ziglearner',bio:'Learning Zig one comptime at a time',posts:12,followers:156,following:89},
+  {id:2,name:'Systems Dev',handle:'sysdev',bio:'Systems programmer, Zig enthusiast',posts:28,followers:203,following:67},
+  {id:3,name:'أحمد الفرا',handle:'ahmedfr',bio:'مبرمج أنظمة عربي',posts:7,followers:89,following:34},
+  {id:4,name:'Code Wizard',handle:'codewiz',bio:'Comptime is magic',posts:19,followers:312,following:45},
+  {id:5,name:'RustConvert',handle:'rustconvert',bio:'Came from Rust, stayed for Zig',posts:33,followers:178,following:92},
+];
+const MOCK_POSTS = [
+  {id:1,uid:1,user:'Zig Learner',time:'2h',text:'Just discovered Zig\'s comptime! You can run code at compile time and generate types dynamically.',code:'const std = @import("std");\n\nfn T(comptime T: type) type {\n    return struct { data: T };\n}\n\npub fn main() void {\n    const S = T(i32);\n    const s = S{ .data = 42 };\n    std.debug.print("{d}", .{s.data});\n}',likes:24,comments:5,liked:false},
+  {id:2,uid:2,user:'Systems Dev',time:'5h',text:'Zig\'s allocator pattern is genius. Every allocation is explicit. No hidden mallocs.',code:'const std = @import("std");\n\npub fn main() !void {\n    var gpa = std.heap.GeneralPurposeAllocator(.{}){};\n    defer _ = gpa.deinit();\n    const a = gpa.allocator();\n    var list = try std.ArrayList(u8).initCapacity(a, 4);\n    defer list.deinit();\n    try list.appendSlice("Zig");\n    std.debug.print("{s}", .{list.items});\n}',likes:42,comments:8,liked:true},
+  {id:3,uid:3,user:'أحمد الفرا',time:'1d',text:'بدأت أتعلم Zig بعد C. لا header، لا preprocessor، compiler أسرع. أنصح بها.',code:'const std = @import("std");\n\npub fn main() void {\n    const msg = "مرحبا";\n    std.debug.print("{s}\\n", .{msg});\n    const x: u8 = 255;\n    std.debug.print("{d}", .{x +% 1});\n}',likes:36,comments:12,liked:false},
+  {id:4,uid:4,user:'Code Wizard',time:'2d',text:'HTTP server in pure Zig std lib. No dependencies!',code:'const std = @import("std");\nconst net = std.net;\n\npub fn main() !void {\n    var srv = try net.StreamServer.init(.{.reuse_address=true});\n    defer srv.deinit();\n    try srv.listen(net.Address.parseIp("0.0.0.0",8080) catch unreachable);\n    while(true) {\n        const c = try srv.accept();\n        defer c.stream.close();\n        _ = try c.stream.write("HTTP/1.1 200 OK\\r\\n\\r\\nHi Zig!");\n    }\n}',likes:53,comments:9,liked:false},
+  {id:5,uid:5,user:'RustConvert',time:'3d',text:'From Rust to Zig. No borrow checker, no lifetimes. Just write code. So fast.',likes:18,comments:7,liked:false},
+];
+const MOCK_PROJECTS = [
+  {title:'Zig HTTP Parser',desc:'Fast HTTP/1.1 parser in Zig',author:'sysdev',tags:['network','parser']},
+  {title:'TigerBE Engine',desc:'Game engine with Vulkan',author:'ahmedfr',tags:['graphics','game-dev']},
+  {title:'Zig SQLite',desc:'Zero-cost SQLite bindings',author:'codewiz',tags:['database','bindings']},
+  {title:'Comptime JSON',desc:'JSON parsing at compile time',author:'ziglearner',tags:['comptime','json']},
+  {title:'Zig TLS 1.3',desc:'TLS in pure Zig',author:'rustconvert',tags:['security','crypto']},
+  {title:'Zig Web',desc:'Express-inspired web framework',author:'sysdev',tags:['web','framework']},
+];
+
+// ── Init Supabase ──
+async function initSupabase(url, key) {
+  if (!url || !key) return false;
+  if (!window.supabase) {
+    try { await loadScript('https://unpkg.com/@supabase/supabase-js@2'); } catch(e) { return false; }
+  }
+  supabase = window.supabase.createClient(url, key);
+  return true;
+}
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+// ── Auth ──
+async function authSignUp(name, email, pass) {
+  if (supabase) {
+    const { data, error } = await supabase.auth.signUp({
+      email, password: pass,
+      options: { data: { full_name: name } }
+    });
+    if (error) return error.message;
+    state.user = data.user;
+    return null;
+  }
+  state.user = { id: Date.now(), email, user_metadata: { full_name: name } };
+  return null;
+}
+
+async function authSignIn(email, pass) {
+  if (supabase) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+    if (error) return error.message;
+    state.user = data.user;
+    return null;
+  }
+  state.user = { id: Date.now(), email, user_metadata: { full_name: email.split('@')[0] } };
+  return null;
+}
+
+async function authSignOut() {
+  if (supabase) await supabase.auth.signOut();
+  state.user = null;
   render();
 }
 
+async function authGitHub() {
+  if (supabase) {
+    await supabase.auth.signInWithOAuth({ provider: 'github' });
+    return;
+  }
+  state.user = { id: Date.now(), email: 'github@user.com', user_metadata: { full_name: 'GitHub User' } };
+  render();
+}
+
+// ── Posts ──
+async function loadPosts() {
+  if (supabase) {
+    const { data } = await supabase.from('posts')
+      .select('*, profiles(username,display_name)')
+      .order('created_at', { ascending: false });
+    if (data) return data;
+  }
+  return MOCK_POSTS;
+}
+
+async function createPost(text, code) {
+  if (supabase && state.user) {
+    await supabase.from('posts').insert({
+      user_id: state.user.id,
+      content: text,
+      code: code || ''
+    });
+    await loadAndRender();
+    return;
+  }
+  MOCK_POSTS.unshift({
+    id: Date.now(), uid: 0, user: state.user?.user_metadata?.full_name || 'You',
+    time: 'now', text, code, likes: 0, comments: 0, liked: false
+  });
+  await loadAndRender();
+}
+
+async function toggleLikePost(postId, liked, likes) {
+  if (supabase && state.user) {
+    if (liked) {
+      await supabase.from('likes').delete().match({ user_id: state.user.id, post_id: postId });
+    } else {
+      await supabase.from('likes').insert({ user_id: state.user.id, post_id: postId });
+    }
+  }
+}
+
+// ── Router ──
+function navigate(v) {
+  state.view = v;
+  window.location.hash = v;
+  render();
+}
 window.addEventListener('hashchange', () => {
   state.view = window.location.hash.slice(1) || 'feed';
   render();
 });
 
 // ── Render ──
+async function loadAndRender() {
+  state.posts = await loadPosts();
+  render();
+}
+
 function render() {
-  const main = document.getElementById('mainContent');
-  const view = state.view;
-  if (!main) return;
+  const m = document.getElementById('main');
+  if (!m) return;
+  const v = state.view;
+  const nm = state.user?.user_metadata?.full_name || 'Z';
+  document.querySelectorAll('.nav-c a').forEach(el => el.classList.toggle('active', el.dataset.v === v));
 
-  // Update active nav
-  document.querySelectorAll('.nav-link').forEach(el => el.classList.toggle('active', el.dataset.view === view));
-  document.querySelectorAll('.sidebar-link').forEach(el => el.classList.toggle('active', el.dataset.view === view));
-
-  switch (view) {
-    case 'feed': renderFeed(main); break;
-    case 'profile': renderProfile(main); break;
-    case 'explore': renderExplore(main); break;
-    case 'learn': renderLearn(main); break;
-    case 'community': renderCommunity(main); break;
-    case 'login': renderLogin(main); break;
-    case 'signup': renderSignup(main); break;
-    default: renderFeed(main); break;
+  switch(v) {
+    case 'feed': renderFeed(m, nm); break;
+    case 'explore': renderExplore(m); break;
+    case 'learn': renderLearn(m); break;
+    case 'community': renderCommunity(m); break;
+    case 'profile': renderProfile(m, nm); break;
+    case 'login': renderLogin(m); break;
+    case 'signup': renderSignup(m); break;
+    default: renderFeed(m, nm);
   }
 }
 
-// ── Feed ──
-function renderFeed(main) {
-  main.className = 'main-content';
-  let html = '<div class="post-creator">';
-  html += `<div class="card-avatar">${state.user ? state.user.name[0] : 'G'}</div>`;
-  html += '<div style="flex:1"><input class="input" placeholder="Share something about Zig..." readonly onclick="openNewPost()"></div></div>';
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-  for (const post of FEED) {
-    const user = USERS.find(u => u.id === post.userId);
-    if (!user) continue;
-    html += `<div class="card">
-      <div class="card-header">
-        <div class="card-avatar">${user.name[0]}</div>
-        <div><div class="card-user">${esc(user.name)}</div><div class="card-time">${post.time}</div></div>
-      </div>
-      <div class="card-body">${esc(post.text)}</div>`;
-    if (post.code) {
-      html += `<div class="card-code"><pre>${esc(post.code)}</pre></div>`;
-    }
-    html += `<div class="card-actions">
-      <button class="card-action ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">${post.liked ? '❤️' : '🤍'} ${post.likes}</button>
-      <button class="card-action commented" onclick="toggleComments(${post.id})">💬 ${post.comments}</button>
-      <button class="card-action">🔗 Share</button>
-    </div>`;
-    html += `<div class="card-comments hidden" id="comments-${post.id}">`;
-    // Simulated comments
-    const commenters = [USERS[(post.userId % 5)], USERS[(post.userId + 1) % 5]];
-    for (let i = 0; i < Math.min(post.comments, 3); i++) {
-      const c = commenters[i % commenters.length];
-      html += `<div class="comment">
-        <div class="comment-avatar">${c.name[0]}</div>
-        <div class="comment-body"><span class="comment-user">${esc(c.name)}</span> <span class="comment-text">Great post! Zig is amazing 🚀</span></div>
-      </div>`;
-    }
-    html += '</div></div>';
-  }
-  main.innerHTML = html;
-}
-
-// ── Profile ──
-function renderProfile(main) {
-  const u = USERS[0];
-  main.className = 'main-content';
-  main.innerHTML = `
-    <div class="profile-header">
-      <div class="profile-avatar">${u.name[0]}</div>
-      <div class="profile-info">
-        <h2>${esc(u.name)}</h2>
-        <p>@${u.handle} · ${esc(u.bio)}</p>
-        <div class="profile-stats">
-          <div class="profile-stat"><div class="num">${u.posts}</div><div class="lbl">Posts</div></div>
-          <div class="profile-stat"><div class="num">156</div><div class="lbl">Followers</div></div>
-          <div class="profile-stat"><div class="num">89</div><div class="lbl">Following</div></div>
-        </div>
-      </div>
+// ── FEED ──
+function renderFeed(m, nm) {
+  let h = `<div class="creator"><div class="post-av">${nm[0]}</div><input class="input" placeholder="Share about Zig..." onclick="openNewPost()" readonly></div>`;
+  const posts = state.posts.length ? state.posts : MOCK_POSTS;
+  for (const p of posts) {
+    const un = p.user || p.profiles?.display_name || 'User';
+    const time = p.time || 'now';
+    h += `<div class="post">
+      <div class="post-h"><div class="post-av">${un[0]}</div><div><div class="post-n">${esc(un)}</div><div class="post-t">${time}</div></div></div>
+      <div class="post-body">${esc(p.text || p.content)}</div>`;
+    if (p.code) h += `<div class="post-code">${esc(p.code)}</div>`;
+    const lid = `p${p.id}`;
+    const likes = p.likes || 0;
+    h += `<div class="post-a">
+      <button onclick="tL('${lid}')" id="${lid}-b">${p.liked ? '❤️' : '🤍'} <span id="${lid}-c">${likes}</span></button>
+      <button onclick="document.getElementById('${lid}-c').classList.toggle('show')">💬 ${p.comments || 0}</button>
+      <button>🔗</button>
     </div>
-    <div class="profile-tabs">
-      <button class="profile-tab active">Posts</button>
-      <button class="profile-tab">Code</button>
-      <button class="profile-tab">Likes</button>
-    </div>
-    <p style="color:var(--text3);font-size:.85em;">No posts yet. Share your first Zig code!</p>`;
-}
-
-// ── Explore ──
-function renderExplore(main) {
-  main.className = 'main-content wide';
-  let html = '<h2 style="margin-bottom:16px;font-size:1.2em;">🔥 Trending Projects</h2>';
-  html += '<div class="explore-grid">';
-  for (const p of PROJECTS) {
-    html += `<div class="explore-card">
-      <h3>${esc(p.title)}</h3>
-      <p>${esc(p.desc)}</p>
-      <div>by @${p.author}</div>
-      <div>${p.tags.map(t => `<span class="tag">#${t}</span>`).join(' ')}</div>
+    <div class="post-c" id="${lid}-c"><div class="cm"><div class="cm-av">S</div><div class="cm-b"><span class="cm-u">Systems Dev</span> <span class="cm-t">Great post!</span></div></div></div>
     </div>`;
   }
-  html += '</div>';
+  m.innerHTML = h;
+}
 
-  html += '<h2 style="margin:24px 0 16px;font-size:1.2em;">📚 Tutorials</h2>';
-  html += '<div class="explore-grid">';
-  for (const t of TUTORIALS) {
-    html += `<div class="explore-card">
-      <h3>${esc(t.title)}</h3>
-      <p>${esc(t.desc)}</p>
-      <div style="display:flex;gap:8px;margin-top:6px;">
-        <span class="tag">${t.level}</span>
-        <span class="tag">${t.time}</span>
-      </div>
-    </div>`;
+function tL(id) {
+  const b = document.getElementById(id + '-b');
+  const c = document.getElementById(id + '-c');
+  if (!b || !c) return;
+  let n = parseInt(c.textContent);
+  if (b.textContent.includes('❤')) {
+    b.innerHTML = `🤍 <span id="${id}-c">${n-1}</span>`;
+  } else {
+    b.innerHTML = `❤️ <span id="${id}-c">${n+1}</span>`;
   }
-  html += '</div>';
-  main.innerHTML = html;
 }
 
-// ── Learn ──
-function renderLearn(main) {
-  main.className = 'main-content wide';
-  main.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h2 style="font-size:1.2em;">📖 Bilingual Reference</h2>
-      <a href="reference.html" target="_blank" class="btn btn-accent">Open Full Reference →</a>
-    </div>
-    <div class="card">
-      <div class="card-body">
-        <strong>Zig 0.16.0 Complete Reference</strong><br>
-        English + Arabic  ·  354 sections  ·  317 code examples  ·  52 chapters
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="reference.html" target="_blank" class="btn btn-outline btn-sm">📘 Full Reference</a>
-        <a href="reference.html#Introduction" target="_blank" class="btn btn-outline btn-sm">Getting Started</a>
-        <a href="reference.html#Basic_Syntax" target="_blank" class="btn btn-outline btn-sm">Basic Syntax</a>
-        <a href="reference.html#Memory" target="_blank" class="btn btn-outline btn-sm">Memory</a>
-        <a href="reference.html#Comptime" target="_blank" class="btn btn-outline btn-sm">Comptime</a>
-      </div>
-    </div>
-    <div class="card" style="margin-top:14px;">
-      <div class="card-header"><div class="card-avatar">📄</div><div><div class="card-user">Quick Start</div></div></div>
-      <div class="card-body">Install Zig and write your first program in 2 minutes.</div>
-      <div class="card-code"><pre># Install on Linux/macOS
-curl -fsSL https://ziglang.org/download/0.16.0/zig-linux-x86_64-0.16.0.tar.xz | tar -xJ
-./zig-linux-x86_64-0.16.0/zig version
+// ── EXPLORE ──
+function renderExplore(m) {
+  let h = '<h2 style="font-size:1.15em;margin-bottom:10px;">🔥 Projects</h2><div class="exp-g">';
+  for (const p of MOCK_PROJECTS) {
+    h += `<div class="exp-c"><h3>${esc(p.title)}</h3><p>${esc(p.desc)}</p><div style="font-size:.7em;color:var(--text3);margin:3px 0">by @${p.author}</div>${p.tags.map(t=>`<span class="tag">#${t}</span>`).join('')}</div>`;
+  }
+  h += '</div>';
+  h += '<h2 style="font-size:1.15em;margin:20px 0 10px;">📚 Tutorials</h2><div class="exp-g">';
+  const tuts = [
+    {title:'Getting Started',desc:'Install & first program',tag:'Beginner'},
+    {title:'Comptime',desc:'Master compile-time code',tag:'Intermediate'},
+    {title:'Memory',desc:'Allocators & arenas',tag:'Advanced'},
+    {title:'CLI Apps',desc:'Build CLI tools',tag:'Intermediate'},
+  ];
+  for (const t of tuts) {
+    h += `<div class="exp-c"><h3>${t.title}</h3><p>${t.desc}</p><span class="tag">${t.tag}</span></div>`;
+  }
+  h += '</div>';
+  m.innerHTML = h;
+}
 
-# Create and run your first program
-echo 'const std = @import("std");
-pub fn main() void {
-    std.debug.print("Hello Zig!\\n", .{});
-}' > hello.zig
-./zig run hello.zig</pre></div>
+// ── LEARN ──
+function renderLearn(m) {
+  m.innerHTML = `
+    <h2 style="font-size:1.15em;margin-bottom:4px;">📖 Bilingual Reference</h2>
+    <p style="color:var(--text2);font-size:.82em;margin-bottom:12px;">Zig 0.16.0 · English + Arabic · 354 sections</p>
+    <div class="post" style="padding:16px;">
+      <p style="font-size:.88em;margin-bottom:10px;">Full bilingual reference with code examples, vocabulary, notes, and exercises.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <a href="reference.html" target="_blank" class="btn btn-p btn-s">📘 Open Reference</a>
+        <a href="reference.html#Introduction" target="_blank" class="btn btn-o btn-s">Start</a>
+        <a href="reference.html#Basic_Syntax" target="_blank" class="btn btn-o btn-s">Syntax</a>
+        <a href="reference.html#Memory" target="_blank" class="btn btn-o btn-s">Memory</a>
+        <a href="reference.html#Comptime" target="_blank" class="btn btn-o btn-s">Comptime</a>
+      </div>
+    </div>
+    <div class="post" style="padding:16px;">
+      <div class="post-h"><div class="post-av" style="background:var(--accent2);font-size:.65em;">🚀</div><div><div class="post-n">Quick Start</div></div></div>
+      <div class="post-code">curl -fsSL https://ziglang.org/download/0.16.0/zig-linux-x86_64-0.16.0.tar.xz | tar -xJ<br>./zig-linux-x86_64-0.16.0/zig version<br><br>echo 'const std = @import("std");<br>pub fn main() void {<br>    std.debug.print("Hello!\\n", .{});<br>}' > hello.zig<br>./zig run hello.zig</div>
     </div>`;
 }
 
-// ── Community ──
-function renderCommunity(main) {
-  main.className = 'main-content wide';
-  main.innerHTML = `
-    <h2 style="margin-bottom:16px;font-size:1.2em;">🌍 Community Hub</h2>
-    <div class="community-grid">
-      <div class="community-card">
-        <div class="icon" style="background:rgba(0,212,170,0.1);color:var(--accent2);">💬</div>
-        <h3>Telegram Group</h3>
-        <p>Arabic & English discussion for Zig programmers</p>
-        <a href="https://t.me/ZigArab" target="_blank" class="btn btn-accent btn-sm">Join Telegram</a>
-      </div>
-      <div class="community-card">
-        <div class="icon" style="background:rgba(88,101,242,0.1);color:#5865F2;">🎮</div>
-        <h3>Discord</h3>
-        <p>Official Discord with thousands of Zig developers</p>
-        <a href="https://discord.gg/zig" target="_blank" class="btn btn-outline btn-sm">Join Discord</a>
-      </div>
-      <div class="community-card">
-        <div class="icon" style="background:rgba(255,255,255,0.05);color:#fff;">📖</div>
-        <h3>GitHub</h3>
-        <p>Source code, issues, and contributions welcome</p>
-        <a href="https://github.com/LightHevenOS1923/zig-reference" target="_blank" class="btn btn-outline btn-sm">View Source</a>
-      </div>
-      <div class="community-card">
-        <div class="icon" style="background:rgba(247,164,29,0.1);color:var(--accent);">🔗</div>
-        <h3>Zig Forum</h3>
-        <p>Official Zig discussion forum and Q&A</p>
-        <a href="https://ziggit.dev" target="_blank" class="btn btn-outline btn-sm">Visit Forum</a>
-      </div>
+// ── COMMUNITY ──
+function renderCommunity(m) {
+  m.innerHTML = `
+    <h2 style="font-size:1.15em;margin-bottom:10px;">🌍 Community Hub</h2>
+    <div class="comm-g">
+      <div class="comm-c"><div class="ic">💬</div><h3>Telegram</h3><p>Arabic & English group</p><a href="https://t.me/ZigArab" target="_blank" class="btn btn-p btn-s">Join</a></div>
+      <div class="comm-c"><div class="ic">🎮</div><h3>Discord</h3><p>Official Zig server</p><a href="https://discord.gg/zig" target="_blank" class="btn btn-o btn-s">Join</a></div>
+      <div class="comm-c"><div class="ic">📖</div><h3>GitHub</h3><p>Source & contributions</p><a href="https://github.com/LightHevenOS1923/zig-reference" target="_blank" class="btn btn-o btn-s">View</a></div>
+      <div class="comm-c"><div class="ic">🔗</div><h3>Zig Forum</h3><p>Discussions & Q&A</p><a href="https://ziggit.dev" target="_blank" class="btn btn-o btn-s">Visit</a></div>
     </div>
-    <div class="card" style="margin-top:20px;">
-      <h3 style="margin-bottom:10px;">📢 Community Rules</h3>
-      <ul style="color:var(--text2);font-size:.85em;padding-left:20px;">
+    <div class="post" style="margin-top:10px;padding:14px;">
+      <h3 style="font-size:.9em;margin-bottom:6px;">📢 Rules</h3>
+      <ul style="color:var(--text2);font-size:.8em;padding-left:18px;">
         <li>Be respectful and inclusive</li>
-        <li>Stay on topic: Zig programming language</li>
-        <li>Help others learn and grow</li>
-        <li>Share your projects and code</li>
-        <li>No spam or self-promotion</li>
+        <li>Stay on topic: Zig</li>
+        <li>Help others learn</li>
+        <li>Share your projects</li>
       </ul>
     </div>`;
 }
 
-// ── Auth ──
-function renderLogin(main) {
-  main.className = 'main-content';
-  main.innerHTML = `
-    <div class="auth-page">
-      <div class="auth-card">
-        <h2>Welcome Back</h2>
-        <p>Sign in to the Zig community</p>
-        <div class="auth-error" id="authError"></div>
-        <input class="input" type="email" id="loginEmail" placeholder="Email address">
-        <input class="input" type="password" id="loginPass" placeholder="Password">
-        <button class="btn btn-accent" onclick="handleLogin()">Sign In</button>
-        <div class="auth-divider">or continue with</div>
-        <button class="btn btn-outline" onclick="handleSocialLogin()">🔵 Sign in with GitHub</button>
-        <div class="auth-switch">Don't have an account? <a onclick="navigate('signup')">Sign up</a></div>
+// ── PROFILE ──
+function renderProfile(m, nm) {
+  const u = state.user?.user_metadata || { full_name: 'Guest', preferred_username: 'guest' };
+  const handle = u.preferred_username || (u.full_name || '').toLowerCase().replace(/\s+/g, '') || 'guest';
+  m.innerHTML = `
+    <div class="prof">
+      <div class="prof-av">${(u.full_name||'Z')[0]}</div>
+      <div class="prof-info">
+        <h2>${esc(u.full_name||'Zig User')}</h2>
+        <div class="h">@${handle}</div>
+        <div class="prof-st">
+          <div><div class="n">12</div><div class="l">Posts</div></div>
+          <div><div class="n">156</div><div class="l">Followers</div></div>
+          <div><div class="n">89</div><div class="l">Following</div></div>
+        </div>
       </div>
-    </div>`;
+    </div>
+    <div class="prof-t">
+      <button class="on">Posts</button>
+      <button>Code</button>
+      <button>Likes</button>
+    </div>
+    ${state.user ? `<button class="btn btn-d btn-s" onclick="authSignOut();render()" style="margin-top:8px;">Sign Out</button>` : ''}
+    <p style="color:var(--text3);font-size:.82em;margin-top:10px;">Your posts will appear here.</p>`;
 }
 
-function renderSignup(main) {
-  main.className = 'main-content';
-  main.innerHTML = `
-    <div class="auth-page">
-      <div class="auth-card">
-        <h2>Create Account</h2>
-        <p>Join the Zig programming community</p>
-        <div class="auth-error" id="authError"></div>
-        <input class="input" type="text" id="signupName" placeholder="Full name">
-        <input class="input" type="email" id="signupEmail" placeholder="Email address">
-        <input class="input" type="password" id="signupPass" placeholder="Password (min 6 characters)">
-        <button class="btn btn-accent" onclick="handleSignup()">Create Account</button>
-        <div class="auth-divider">or continue with</div>
-        <button class="btn btn-outline" onclick="handleSocialLogin()">🔵 Sign up with GitHub</button>
-        <div class="auth-switch">Already have an account? <a onclick="navigate('login')">Sign in</a></div>
-      </div>
-    </div>`;
+// ── AUTH ──
+function renderLogin(m) {
+  m.innerHTML = `<div class="auth-p"><div class="auth-c">
+    <h2>Welcome Back</h2>
+    <div class="sub">Sign in to ZigHub</div>
+    <div class="err" id="err"></div>
+    <input class="input" id="le" type="email" placeholder="Email">
+    <input class="input" id="lp" type="password" placeholder="Password">
+    <button class="btn btn-p" onclick="hLogin()">Sign In</button>
+    <div style="text-align:center;color:var(--text3);font-size:.75em;margin:10px 0;">or</div>
+    <button class="btn btn-o" onclick="hGitHub()">🔵 GitHub</button>
+    <div class="auth-switch">No account? <span onclick="navigate('signup')">Sign up</span></div>
+  </div></div>`;
 }
 
-// ── Actions ──
-function toggleLike(postId) {
-  const post = FEED.find(p => p.id === postId);
-  if (!post) return;
-  post.liked = !post.liked;
-  post.likes += post.liked ? 1 : -1;
-  render();
+function renderSignup(m) {
+  m.innerHTML = `<div class="auth-p"><div class="auth-c">
+    <h2>Create Account</h2>
+    <div class="sub">Join the Zig community</div>
+    <div class="err" id="err"></div>
+    <input class="input" id="sn" placeholder="Full name">
+    <input class="input" id="se" type="email" placeholder="Email">
+    <input class="input" id="sp" type="password" placeholder="Password (6+ chars)">
+    <button class="btn btn-p" onclick="hSignup()">Create Account</button>
+    <div style="text-align:center;color:var(--text3);font-size:.75em;margin:10px 0;">or</div>
+    <button class="btn btn-o" onclick="hGitHub()">🔵 GitHub</button>
+    <div class="auth-switch">Have an account? <span onclick="navigate('login')">Sign in</span></div>
+  </div></div>`;
 }
 
-function toggleComments(postId) {
-  const el = document.getElementById(`comments-${postId}`);
-  if (el) el.classList.toggle('hidden');
+// ── Handlers ──
+async function hLogin() {
+  const e = document.getElementById('le')?.value;
+  const p = document.getElementById('lp')?.value;
+  if (!e||!p) return showErr('Fill all fields');
+  const err = await authSignIn(e, p);
+  if (err) return showErr(err);
+  await loadAndRender();
+}
+async function hSignup() {
+  const n = document.getElementById('sn')?.value;
+  const e = document.getElementById('se')?.value;
+  const p = document.getElementById('sp')?.value;
+  if (!n||!e||!p) return showErr('Fill all fields');
+  if (p.length<6) return showErr('Password too short');
+  const err = await authSignUp(n, e, p);
+  if (err) return showErr(err);
+  await loadAndRender();
+}
+async function hGitHub() {
+  await authGitHub();
+  await loadAndRender();
+}
+function showErr(m) {
+  const el = document.getElementById('err');
+  if (el) { el.textContent = m; el.style.display = 'block'; }
 }
 
 function openNewPost() {
-  if (!state.user) {
-    navigate('login');
-    return;
-  }
-  alert('New post feature coming with Supabase backend!');
+  if (!state.user) return navigate('login');
+  document.getElementById('postModal').classList.add('on');
+  document.getElementById('postText').value = '';
+  document.getElementById('postCode').value = '';
 }
 
-function handleLogin() {
-  const email = document.getElementById('loginEmail')?.value;
-  const pass = document.getElementById('loginPass')?.value;
-  if (!email || !pass) {
-    showAuthError('Please fill in all fields');
-    return;
-  }
-  state.user = { name: 'Zig User', email, handle: 'ziguser' };
-  navigate('feed');
-}
-
-function handleSignup() {
-  const name = document.getElementById('signupName')?.value;
-  const email = document.getElementById('signupEmail')?.value;
-  const pass = document.getElementById('signupPass')?.value;
-  if (!name || !email || !pass) {
-    showAuthError('Please fill in all fields');
-    return;
-  }
-  if (pass.length < 6) {
-    showAuthError('Password must be at least 6 characters');
-    return;
-  }
-  state.user = { name, email, handle: name.toLowerCase().replace(/\\s+/g, '') };
-  navigate('feed');
-}
-
-function handleSocialLogin() {
-  state.user = { name: 'GitHub User', email: 'user@github.com', handle: 'githubuser' };
-  navigate('feed');
-}
-
-function showAuthError(msg) {
-  const el = document.getElementById('authError');
-  if (el) { el.textContent = msg; el.style.display = 'block'; }
-}
-
-function esc(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+async function submitPost() {
+  const t = document.getElementById('postText').value;
+  const c = document.getElementById('postCode').value;
+  if (!t) return;
+  await createPost(t, c);
+  document.getElementById('postModal').classList.remove('on');
 }
 
 // ── Init ──
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const hash = window.location.hash.slice(1);
   if (hash) state.view = hash;
-  render();
+
+  // Try Supabase if configured
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    const ok = await initSupabase(SUPABASE_URL, SUPABASE_KEY);
+    if (ok && supabase) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) state.user = user;
+    }
+  }
+
+  await loadAndRender();
 });
